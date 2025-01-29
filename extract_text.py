@@ -1,13 +1,11 @@
-import PyPDF2
+from PyPDF2 import PdfReader
 
 def extract_text_from_pdf():
     pdf_path = "manual.pdf"
     text = ""
-    with open(pdf_path, "rb") as file:
-        reader = PyPDF2.PdfFileReader(file)
-        for page_num in range(reader.numPages):
-            page = reader.getPage(page_num)
-            text += page.extract_text()
+    reader = PdfReader(pdf_path)
+    for page in reader.pages:
+        text += page.extract_text()
     return text
 
 if __name__ == "__main__":
