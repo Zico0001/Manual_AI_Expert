@@ -1,34 +1,67 @@
-# app.py
-import os
 import streamlit as st
+import requests
+import fitz  # PyMuPDF
 from transformers import pipeline
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+import os
+
+# Function to download PDF from GitHub
+def download_pdf_from_github(url, save_path):
+    response = requests.get(url)
+    with open(save_path, "wb") as file:
+        file.write(response.content)
+
+# Function to extract text from PDF
+def extract_text_from_pdf(pdf_path):
+    doc = fitz.open(pdf_path)
+    text = ""
+    for page in doc:
+        text += page.get_text()
+    return text
+
+# Function to index text using FAISS
+def index_text(text):
+    model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+    sentences = text.split('.')
+    embeddings = model.encode(sentences)
+    index = faiss.IndexFlatL2(embeddings.shape[1])
+    index.add(np.array(embeddings))
+    return index, sentences
+
+# Streamlit app
+st.title("PDF Manual Chatbot")
+
+pdf_url = "https://github.com/your-username/your-repo/raw/branch/manual.pdf"
+pdf_path = "manual.pdf"
+
+# Download PDF
+download_pdf_from_github(pdf_url, pdf_path)
+
+# Extract text
+text = extract_text_from_pdf(pdf_path)
+
+# Index text
+index, sentences = index_text(text)
 
 @st.cache(allow_output_mutation=True)
-def load_index():
-    index_path = os.path.join(os.path.dirname(__file__), "manual_index.faiss")
-    index = faiss.read_index(index_path)
-    with open("manual_sentences.txt", "r") as file:
-        text = file.read().split('\n')
-    return index, text
+def load_model():
+    generator = pipeline('text-generation', model='EleutherAI/gpt-neo-125M')
+    return generator
 
-def search_manual(query, index, text):
+generator = load_model()
+
+def search_manual(query, index, sentences):
     model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
     query_embedding = model.encode([query])
     D, I = index.search(np.array(query_embedding), k=1)
-    return text[I[0][0]]
+    return sentences[I[0][0]]
 
-# Load the index and texts
-index, text = load_index()
-generator = pipeline('text-generation', model='EleutherAI/gpt-neo-125M')
-
-st.title("PDF Manual Chatbot")
 user_query = st.text_input("Ask me about the manual:")
 
 if user_query:
-    manual_response = search_manual(user_query, index, text)
+    manual_response = search_manual(user_query, index, sentences)
     response = generator(f"Based on the manual: {manual_response}\nUser: {user_query}\nBot:", max_length=100, num_return_sequences=1)
     st.write(f"Bot: {response[0]['generated_text'].strip()}")
 
