@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import fitz  # PyMuPDF
 from transformers import pipeline
 from sentence_transformers import SentenceTransformer
 import faiss
@@ -13,12 +12,15 @@ def download_pdf_from_github(url, save_path):
     with open(save_path, "wb") as file:
         file.write(response.content)
 
-# Function to extract text from PDF
+# Function to extract text from PDF using PyPDF2
 def extract_text_from_pdf(pdf_path):
-    doc = fitz.open(pdf_path)
+    import PyPDF2
     text = ""
-    for page in doc:
-        text += page.get_text()
+    with open(pdf_path, "rb") as file:
+        reader = PyPDF2.PdfFileReader(file)
+        for page_num in range(reader.numPages):
+            page = reader.getPage(page_num)
+            text += page.extract_text()
     return text
 
 # Function to index text using FAISS
@@ -33,7 +35,7 @@ def index_text(text):
 # Streamlit app
 st.title("PDF Manual Chatbot")
 
-pdf_url = "https://github.com/Zico0001/Manual_AI_Expert/blob/main/manual.pdf"
+pdf_url = "https://github.com/your-username/your-repo/raw/branch/manual.pdf"
 pdf_path = "manual.pdf"
 
 # Download PDF
