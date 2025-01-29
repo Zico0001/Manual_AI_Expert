@@ -35,7 +35,7 @@ def index_text(text):
 # Streamlit app
 st.title("PDF Manual Chatbot")
 
-pdf_url = "https://github.com/your-username/your-repo/raw/branch/manual.pdf"
+pdf_url = "https://github.com/Zico0001/Manual_AI_Expert/blob/main/manual.pdf"
 pdf_path = "manual.pdf"
 
 # Download PDF
