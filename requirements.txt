@@ -1,5 +1,5 @@
 streamlit
-fitz
+PyPDF2
 sentence-transformers
 faiss-cpu
 transformers
