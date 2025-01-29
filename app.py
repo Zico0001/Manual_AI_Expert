@@ -1,4 +1,5 @@
 # app.py
+import os
 import streamlit as st
 from transformers import pipeline
 from sentence_transformers import SentenceTransformer
@@ -7,7 +8,8 @@ import numpy as np
 
 @st.cache(allow_output_mutation=True)
 def load_index():
-    index = faiss.read_index("manual_index.faiss")
+    index_path = os.path.join(os.path.dirname(__file__), "manual_index.faiss")
+    index = faiss.read_index(index_path)
     with open("manual_sentences.txt", "r") as file:
         text = file.read().split('\n')
     return index, text
