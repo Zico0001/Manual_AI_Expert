@@ -9,6 +9,7 @@ An open-source chatbot that interacts with a PDF instruction and reference manua
 - Stores and indexes the extracted text
 - Provides natural language search functionality
 - Handles user queries through a conversational interface
+- GPT-Neo.
 
 ## Installation
 1. Clone this repository:
